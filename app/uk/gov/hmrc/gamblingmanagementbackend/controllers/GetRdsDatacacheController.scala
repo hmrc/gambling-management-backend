@@ -24,20 +24,24 @@ import play.api.mvc.Action
 import play.api.mvc.ControllerComponents
 import play.api.mvc.Results.InternalServerError
 import play.api.mvc.Results.{NotFound, Ok}
-import uk.gov.hmrc.gamblingmanagementbackend.connectors.RdsDatacacheProxyConnector
+import uk.gov.hmrc.gamblingmanagementbackend.connector.RdsDatacacheProxyConnector
+import play.api.mvc.RequestHeader
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import play.api.libs.json.Json
 
 @Singleton()
 class GetRdsDatacacheController @Inject() (
                                             val cc: ControllerComponents,
-                                            val authorisedAction: AuthorisedAction,
-                                            rdsDatacacheProxyConnector: RdsDatacacheProxyConnector
+                                            RdsDatacacheProxyConnector: RdsDatacacheProxyConnector
                                           )(using ExecutionContext)
-  extends BaseController {
+ {
+   given headerCarrier(using request: RequestHeader): HeaderCarrier =
+     HeaderCarrierConverter.fromRequest(request)
 
-  final def getReturnSummary(mgdRegNumber: String): Action[String]          =
-    whenAuthorised {
-      rdsDatacacheProxyConnector
+  final def getReturnSummary(mgdRegNumber: String): Action[String] =
+      
+      RdsDatacacheProxyConnector
         .getReturnSummary(mgdRegNumber)
         .map {
           case Some(Seq(mgdRegNumber, returnsDue, returnsOverdue)) =>
@@ -53,7 +57,7 @@ class GetRdsDatacacheController @Inject() (
             NotFound(
               Json.obj(
                 "errorMessage" -> s"Expected 3 fields but found ${other.size}",
-                "errorCode"    -> "TBD"
+                "errorCode" -> "TBD"
               )
             )
 
@@ -61,7 +65,7 @@ class GetRdsDatacacheController @Inject() (
             NotFound(
               Json.obj(
                 "errorMessage" -> "Required fields not found",
-                "errorCode"    -> "TBD"
+                "errorCode" -> "TBD"
               )
             )
         }
@@ -69,7 +73,7 @@ class GetRdsDatacacheController @Inject() (
           InternalServerError(
             Json.obj(
               "errorMessage" -> e.getMessage,
-              "errorCode"    -> "RDSDATACACHE_PROXY_ERROR"
+              "errorCode" -> "rdsDATACACHE_PROXY_ERROR"
             )
           )
         }
