@@ -20,8 +20,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import scala.concurrent.ExecutionContext
 
-import play.api.mvc.Action
-import play.api.mvc.ControllerComponents
 import play.api.mvc.Results.InternalServerError
 import play.api.mvc.Results.{NotFound, Ok}
 import uk.gov.hmrc.gamblingmanagementbackend.connector.RdsDatacacheProxyConnector
@@ -29,20 +27,21 @@ import play.api.mvc.RequestHeader
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import play.api.libs.json.Json
-
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.mvc.AbstractController
 @Singleton()
 class GetRdsDatacacheController @Inject() (
                                             val cc: ControllerComponents,
                                             RdsDatacacheProxyConnector: RdsDatacacheProxyConnector
-                                          )(using ExecutionContext)
+                                          )(using ExecutionContext) extends AbstractController(cc)
  {
    given headerCarrier(using request: RequestHeader): HeaderCarrier =
      HeaderCarrierConverter.fromRequest(request)
 
-  final def getReturnSummary(mgdRegNumber: String): Action[String] =
-      
-      RdsDatacacheProxyConnector
-        .getReturnSummary(mgdRegNumber)
+   final def getReturnSummary(mgdRegNumber: String): Action[AnyContent] =
+     Action.async { implicit request =>
+       RdsDatacacheProxyConnector
+         .getReturnSummary(mgdRegNumber)
         .map {
           case Some(Seq(mgdRegNumber, returnsDue, returnsOverdue)) =>
             Ok(
@@ -78,3 +77,4 @@ class GetRdsDatacacheController @Inject() (
           )
         }
     }
+   }
