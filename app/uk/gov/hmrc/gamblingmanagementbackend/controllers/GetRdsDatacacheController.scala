@@ -72,7 +72,7 @@ class GetRdsDatacacheController @Inject() (
           InternalServerError(
             Json.obj(
               "errorMessage" -> e.getMessage,
-              "errorCode" -> "rdsDATACACHE_PROXY_ERROR"
+              "errorCode" -> "RDS_DATACACHE_PROXY_ERROR"
             )
           )
         }
